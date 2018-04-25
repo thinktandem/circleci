@@ -69,4 +69,4 @@ workflows:
 PRs Will Trigger CircleCI
 -------------------------
 
-<img src="circleci-test.png" alt="CircleCI Tests Screenshot" align="center" width="644px;" />
+<img src="https://github.com/thinktandem/circleci/blob/master/circle-test.png" alt="CircleCI Tests Screenshot" align="center" width="644px;" />
