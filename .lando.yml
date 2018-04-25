@@ -1,4 +1,4 @@
-name: my-drupes
+name: circleci 
 recipe: drupal8
 config:
   webroot: web
