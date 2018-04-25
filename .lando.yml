@@ -1,0 +1,10 @@
+name: my-drupes
+recipe: drupal8
+config:
+  webroot: web
+
+services:
+  appserver:
+    run:
+      - cd $LANDO_MOUNT && composer install
+
