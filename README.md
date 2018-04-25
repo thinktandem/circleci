@@ -1,39 +1,70 @@
-# Composer template for Drupal projects
+CircleCI
+--------
 
-[![Build Status](https://travis-ci.org/drupal-composer/drupal-project.svg?branch=8.x)](https://travis-ci.org/drupal-composer/drupal-project)
+This is a proof of concept repo that shows how to install [Lando](https://docs.devwithlando.io) on CircleCI and use it 
+to perform your test suite.
 
-This project template provides a starter kit for managing your site
-dependencies with [Composer](https://getcomposer.org/).
+Usage
+-----
 
-If you want to know how to use it as replacement for
-[Drush Make](https://github.com/drush-ops/drush/blob/8.x/docs/make.md) visit
-the [Documentation on drupal.org](https://www.drupal.org/node/2471553).
+The main piece of value here is the [`.circlci/config.yml`](https://github.com/thinktandem/circleci/blob/master/.circleci/config.yml)
+file.  You can either just take this file as your jumping off point and add it to your repo or fork this repo as a 
+starting point for a new project.
 
-## Usage
+Here is the full config file:
 
-First you need to [install composer](https://getcomposer.org/doc/00-intro.md#installation-linux-unix-osx).
+```yml
+# https://circleci.com/docs/2.0/workflows/#using-workspaces-to-share-data-among-jobs
+defaults: &defaults
+  environment:
+    TZ: "/usr/share/zoneinfo/America/New_York"
+    TERM: dumb
+version: 2
+jobs:
+  test:
+    machine:
+      image: circleci/classic:201711-01
+    steps:
+      - checkout
+      - restore_cache:
+          key: composer-{{ checksum "composer.lock" }}
+      - run:
+          name: Startup checks
+          command: |
+            sudo docker --version
+            sudo docker-compose --version
+            lsb_release -a
+            export -p
+      - run:
+          name: Get Lando
+          command: |
+            sudo apt-get update
+            sudo apt-get install cgroup-bin -y
+            if [ ! -f /tmp/lando-latest.deb ]; then
+              curl -fsSL -o /tmp/lando-latest.deb http://installer.kalabox.io/lando-latest-dev.deb
+            fi
+            sudo dpkg -i /tmp/lando-latest.deb
+            lando version
+      - run:
+          name: Start Lando
+          command: |
+            lando start
+      - save_cache:
+          key: composer-{{ checksum "composer.lock" }}
+          paths:
+            - "vendor"
+            - /tmp/lando-latest.deb
+      - run:
+          name: Test Lando
+          command: |
+            lando composer test
 
-> Note: The instructions below refer to the [global composer installation](https://getcomposer.org/doc/00-intro.md#globally).
-You might need to replace `composer` with `php composer.phar` (or similar) 
-for your setup.
-
-After that you can create the project:
-
+workflows:
+  version: 2
+  deployment:
+    jobs:
+      - test
 ```
-composer create-project drupal-composer/drupal-project:8.x-dev some-dir --stability dev --no-interaction
-```
-
-With `composer require ...` you can download new dependencies to your 
-installation.
-
-```
-cd some-dir
-composer require drupal/devel:~1.0
-```
-
-The `composer create-project` command passes ownership of all files to the 
-project that is created. You should create a new git repository, and commit 
-all files not excluded by the .gitignore file.
 
 ## What does the template do?
 
